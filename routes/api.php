@@ -46,4 +46,9 @@ Route::middleware(['auth:sanctum', 'checkAccessTokenExpiry'])->group(function ()
         Route::put('/{venue}/status', [VenueController::class, 'updateStatusVenue'])
                 ->middleware('role:admin,moderator');
     });
+
+    Route::prefix('profile')->group(function () {
+        Route::get('/', [AuthController::class, 'showProfile']);
+        Route::put('/', [AuthController::class, 'updateProfile']);
+    });
 });
