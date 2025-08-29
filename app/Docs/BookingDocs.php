@@ -167,5 +167,114 @@ use OpenApi\Annotations as OA;
  *     @OA\Property(property="created_at", type="string", format="date-time"),
  *     @OA\Property(property="updated_at", type="string", format="date-time")
  * )
+  * @OA\Put(
+ *     path="/api/bookings/{booking}/status",
+ *     tags={"Bookings"},
+ *     summary="Update booking status",
+ *     description="Cập nhật trạng thái của một booking.
+ *     - Người dùng chỉ có thể **cancel** booking của chính mình.
+ *     - Venue owner/manager có thể cập nhật sang các trạng thái khác (confirmed-unpaid, accepted, rejected...).",
+ *     security={{"bearerAuth":{}}},
+ *     @OA\Parameter(
+ *         name="booking",
+ *         in="path",
+ *         required=true,
+ *         description="Booking ID",
+ *         @OA\Schema(type="integer", example=12)
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"status"},
+ *             @OA\Property(
+ *                 property="status",
+ *                 type="string",
+ *                 enum={"pending","confirmed-unpaid","paid-pending","partial-pending","accepted","rejected","cancelled","done"},
+ *                 example="accepted",
+ *                 description="Trạng thái mới của booking"
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Cập nhật trạng thái thành công",
+ *         @OA\JsonContent(ref="#/components/schemas/BookingResource")
+ *     ),
+ *     @OA\Response(
+ *         response=401,
+ *         description="Unauthorized - chưa đăng nhập"
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="Forbidden - không có quyền cập nhật booking này"
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Validation error - trạng thái không hợp lệ"
+ *     )
+ * )
+ *
+ * @OA\Post(
+ *     path="/api/bookings/{booking}/check-in",
+ *     tags={"Bookings"},
+ *     summary="Check-in booking",
+ *     description="Người dùng thực hiện check-in cho booking đã **được chấp nhận (accepted)**.
+ *     - Chỉ được check-in trong khoảng thời gian booking có hiệu lực.
+ *     - Không thể check-in nếu đã check-in trước đó.",
+ *     security={{"bearerAuth":{}}},
+ *     @OA\Parameter(
+ *         name="booking",
+ *         in="path",
+ *         required=true,
+ *         description="Booking ID",
+ *         @OA\Schema(type="integer", example=15)
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Check-in thành công",
+ *         @OA\JsonContent(ref="#/components/schemas/BookingResource")
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Bad Request - Lỗi nghiệp vụ (ví dụ: chưa tới giờ check-in, đã check-in, booking chưa được accepted...)"
+ *     ),
+ *     @OA\Response(
+ *         response=401,
+ *         description="Unauthorized"
+ *     )
+ * )
+ *
+ * @OA\Post(
+ *     path="/api/bookings/{booking}/check-out",
+ *     tags={"Bookings"},
+ *     summary="Check-out booking",
+ *     description="Người dùng thực hiện check-out cho booking đã check-in.
+ *     - Booking phải có **status = accepted**.
+ *     - Không thể check-out nếu chưa check-in hoặc đã check-out trước đó.
+ *     - Thời gian check-out phải nằm trong thời gian booking.",
+ *     security={{"bearerAuth":{}}},
+ *     @OA\Parameter(
+ *         name="booking",
+ *         in="path",
+ *         required=true,
+ *         description="Booking ID",
+ *         @OA\Schema(type="integer", example=15)
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Check-out thành công",
+ *         @OA\JsonContent(ref="#/components/schemas/BookingResource")
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Bad Request - Lỗi nghiệp vụ (ví dụ: chưa check-in, đã check-out, booking chưa được accepted...)"
+ *     ),
+ *     @OA\Response(
+ *         response=401,
+ *         description="Unauthorized"
+ *     )
+ * )
  */
-class BookingDocs {}
+class BookingDocs
+{
+}

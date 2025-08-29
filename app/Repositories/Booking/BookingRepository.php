@@ -19,7 +19,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class BookingRepository implements BookingRepositoryInterface
 {
-    const PAGE_SIZE = 12;
+    public const PAGE_SIZE = 12;
 
     public function create(array $data): Booking
     {
@@ -163,6 +163,88 @@ class BookingRepository implements BookingRepositoryInterface
         } catch (\Exception $e) {
             Log::error('Fetch all bookings failed: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
+    }
+
+    public function findBookingForUpdate(int $id): ?Booking
+    {
+        try {
+            return Booking::where('id', $id)->lockForUpdate()->first();
+        } catch (\Exception $e) {
+            Log::error('find booking for update failed: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
+    }
+
+    public function updateBookingPaymentStatus(Booking $booking, array $bookingUpdateData): Booking
+    {
+        try {
+            $booking->update($bookingUpdateData);
+            return $booking;
+        } catch (\Exception $e) {
+            Log::error('updateBookingPaymentStatus failed: ' . $e->getMessage(), [
+                'booking_id' => $booking->id ?? null,
+                'data'       => $bookingUpdateData,
+                'trace'      => $e->getTraceAsString(),
+            ]);
+            throw $e;
+        }
+    }
+
+    public function updateStatus(Booking $booking, string $status): Booking
+    {
+        try {
+            $booking->update([
+                'status' => $status,
+            ]);
+
+            return $booking->fresh();
+        } catch (\Exception $e) {
+            Log::error('Update status failed: ' . $e->getMessage(), [
+                'booking_id' => $booking->id ?? null,
+                'status'     => $status,
+                'trace'      => $e->getTraceAsString(),
+            ]);
+            throw $e;
+        }
+    }
+
+    public function updateCheckIn(Booking $booking, \DateTimeInterface $checkIn): Booking
+    {
+        try {
+            $booking->update([
+                'check_in' => $checkIn,
+            ]);
+
+            return $booking->fresh();
+        } catch (\Exception $e) {
+            Log::error('Update check-in failed: ' . $e->getMessage(), [
+                'booking_id' => $booking->id ?? null,
+                'check_in'   => $checkIn,
+                'trace'      => $e->getTraceAsString(),
+            ]);
+            throw $e;
+        }
+    }
+
+    public function updateCheckOut(Booking $booking, \DateTimeInterface $checkOut): Booking
+    {
+        try {
+            $booking->update([
+                'check_out' => $checkOut,
+                'status'    => BookingStatus::DONE->value, // Done khi checkout
+            ]);
+
+            return $booking->fresh();
+        } catch (\Exception $e) {
+            Log::error('Update check-out failed: ' . $e->getMessage(), [
+                'booking_id' => $booking->id ?? null,
+                'check_out'  => $checkOut,
+                'trace'      => $e->getTraceAsString(),
             ]);
             throw $e;
         }

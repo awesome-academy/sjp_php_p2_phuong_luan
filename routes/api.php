@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Venue\VenueController;
 use App\Http\Controllers\Amenity\AmenityController;
+use App\Http\Controllers\Payment\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -74,9 +75,21 @@ Route::middleware(['auth:sanctum', 'checkAccessTokenExpiry'])->group(function ()
         Route::put('/', [AuthController::class, 'updateProfile']);
     });
 
-    Route::prefix('bookings')->group(function() {
+    Route::prefix('bookings')->group(function () {
         Route::post('/', [BookingController::class, 'store']);
         Route::get('/', [BookingController::class, 'index'])->middleware('role:admin,moderator');
         Route::get('/{booking}', [BookingController::class, 'show'])->can('view', 'booking');
+        Route::put('/{booking}/status', [BookingController::class, 'updateStatus']);
+        Route::post('/{booking}/check-in', [BookingController::class, 'checkIn'])->can('checkInOut', 'booking');
+        Route::post('/{booking}/check-out', [BookingController::class, 'checkOut'])->can('checkInOut', 'booking');
+    });
+
+    Route::prefix('payment')->group(function () {
+        Route::post('/momo', [PaymentController::class, 'payWithMomo'])->middleware('throttle:momo-user');
     });
 });
+
+Route::get('/payment/momo/redirect', [PaymentController::class, 'momoRedirect'])->name('payment.momo.redirect');
+Route::post('/payment/momo/ipn', [PaymentController::class, 'momoIpn'])
+    ->middleware('throttle:momo-ipn')
+    ->name('payment.momo.ipn');
